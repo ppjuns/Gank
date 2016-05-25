@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent">
+
+    <android.support.v7.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="8dp">
+<RelativeLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="8dp">
+
+    <TextView
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+
+        android:text="asd"
+        android:id="@+id/title_data_tv"/>
+
+    <TextView
+        android:layout_marginTop="8dp"
+        android:id="@+id/author_data_tv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:text="via."
+        android:layout_below="@id/title_data_tv"/>
+
+
+    <TextView
+        android:layout_marginTop="8dp"
+        android:id="@+id/source_data_tv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:text="github"
+        android:layout_below="@id/author_data_tv"/>
+
+    <TextView
+        android:layout_marginTop="8dp"
+        android:id="@+id/date_data_tv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_alignEnd="@id/source_data_tv"
+        android:text="date"
+        android:layout_alignRight="@id/source_data_tv"
+        android:layout_alignBottom="@+id/source_data_tv"/>
+</RelativeLayout>
+
+    </android.support.v7.widget.CardView>
+
+
+
+</LinearLayout>
