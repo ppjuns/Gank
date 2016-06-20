@@ -1,4 +1,5 @@
 package com.ppjun.gank.adapter;
+
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -7,6 +8,7 @@ import android.view.ViewGroup;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+
 
 /**
  * @Package :com.ppjun.gank.adapter
@@ -17,12 +19,17 @@ import java.util.List;
 public abstract  class GankRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     private ArrayList mList;
-    private GankRecyclerViewHolder.OnItemClickListener mOnItemClickListener;
-    private GankRecyclerViewHolder.OnItemLongClickListener mOnItemLongClickListener;
+
+ private onItemClick mOnItemClick;
 
     public GankRecyclerViewAdapter(){
 
         mList=new ArrayList();
+    }
+
+
+    public void setOnItemClick(onItemClick click){
+        this.mOnItemClick=click;
     }
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -50,10 +57,17 @@ public abstract  class GankRecyclerViewAdapter extends RecyclerView.Adapter<Recy
         try {
             GankRecyclerViewHolder gankRecyclerViewHolder= (GankRecyclerViewHolder) holder;
             this.onBindRecyclerViewHolder(gankRecyclerViewHolder,position);
-            gankRecyclerViewHolder.setOnItemClickListener(this.mOnItemClickListener,position);
-            gankRecyclerViewHolder.setOnItemLongClickListener(this.mOnItemLongClickListener,position);
+
         } catch (Exception e) {
             e.printStackTrace();
+        }
+
+
+        if(mOnItemClick!=null){
+            holder.itemView.setOnClickListener(v->{
+                mOnItemClick.onClick(v,position);
+
+            });
         }
     }
     public abstract void onBindRecyclerViewHolder(GankRecyclerViewHolder viewHolder,int position);
@@ -106,13 +120,9 @@ public abstract  class GankRecyclerViewAdapter extends RecyclerView.Adapter<Recy
 
 
 
-    public void setOnItemClickListener(GankRecyclerViewHolder.OnItemClickListener listener){
-        this.mOnItemClickListener=listener;
 
-    }
+  public interface onItemClick{
 
-    public void setOnItemLongClickListener(GankRecyclerViewHolder.OnItemLongClickListener listener){
-        this.mOnItemLongClickListener=listener;
-    }
-
+      void onClick(View v,int position);
+  }
 }

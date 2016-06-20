@@ -1,60 +1,69 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:orientation="vertical"
+              android:id="@+id/ll_data"
               android:layout_width="match_parent"
-              android:layout_height="match_parent">
+              android:layout_height="match_parent"
+              android:descendantFocusability="blocksDescendants"
+              android:orientation="vertical">
 
     <android.support.v7.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+
         android:layout_margin="8dp">
-<RelativeLayout
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:padding="8dp">
 
-    <TextView
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentTop="true"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        <RelativeLayout
+            android:id="@+id/rl_data"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="8dp">
 
-        android:text="asd"
-        android:id="@+id/title_data_tv"/>
-
-    <TextView
-        android:layout_marginTop="8dp"
-        android:id="@+id/author_data_tv"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:text="via."
-        android:layout_below="@id/title_data_tv"/>
+            <TextView
+                android:id="@+id/dtitle_data_tv"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentTop="true"
+                android:text="加载中"/>
+            
+            
 
 
-    <TextView
-        android:layout_marginTop="8dp"
-        android:id="@+id/source_data_tv"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:text="github"
-        android:layout_below="@id/author_data_tv"/>
+            <TextView
+                android:id="@+id/author_data_tv"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/dtitle_data_tv"
+                android:layout_marginTop="5dp"
 
-    <TextView
-        android:layout_marginTop="8dp"
-        android:id="@+id/date_data_tv"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
-        android:layout_alignEnd="@id/source_data_tv"
-        android:text="date"
-        android:layout_alignRight="@id/source_data_tv"
-        android:layout_alignBottom="@+id/source_data_tv"/>
-</RelativeLayout>
+              android:drawableLeft="@drawable/author"
+                android:layout_alignParentLeft="true"
+                android:text=" 佚名"/>
+
+
+            <TextView
+                android:id="@+id/source_data_tv"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_below="@id/author_data_tv"
+
+                android:text=""/>
+
+            <TextView
+                android:id="@+id/date_data_tv"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignBottom="@+id/source_data_tv"
+                android:layout_alignEnd="@id/source_data_tv"
+                android:layout_alignParentRight="true"
+
+                android:layout_alignRight="@id/source_data_tv"
+
+                android:text="date"/>
+        </RelativeLayout>
 
     </android.support.v7.widget.CardView>
-
 
 
 </LinearLayout>

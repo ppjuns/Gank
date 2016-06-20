@@ -1,15 +1,18 @@
 package com.ppjun.gank.adapter;
 
 import android.app.Activity;
+import android.text.TextUtils;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.ppjun.gank.R;
 import com.ppjun.gank.bean.BaseGankData;
 import com.ppjun.gank.bean.GankDaily;
+import com.ppjun.gank.constant.Constant;
 import com.ppjun.gank.gank.GankApi;
+import com.ppjun.gank.utils.Dateutils;
 import com.ppjun.gank.utils.GlideUtils;
-
 
 
 /**
@@ -65,12 +68,33 @@ public class SimpleAdapter extends GankRecyclerViewAdapter {
         GankDaily dailyDaily = this.getItem(position);
         if (dailyDaily == null) return;
         TextView mTextView=viewHolder.findViewById(R.id.title_tv);
+        TextView mDate=viewHolder.findViewById(R.id.date_tv);
         ImageView mImageView=viewHolder.findViewById(R.id.icon_image);
-        if (dailyDaily.results.videoData != null && dailyDaily.results.videoData.size() > 0)
-            mTextView.setText(dailyDaily.results.videoData.get(0).desc);
-        if (dailyDaily.results.welfareData != null && dailyDaily.results.welfareData.size() > 0)
-          GlideUtils.display(mImageView, dailyDaily.results.welfareData.get(0).url);
+         //先找视频的title 再找福利的title，都找不到就没了。
+        if (dailyDaily.results.videoData != null && dailyDaily.results.videoData.size() > 0) {
+            BaseGankData vieo=dailyDaily.results.videoData.get(0);
+            mTextView.setText(vieo.desc);
+            mDate.setText(Dateutils.date2String(vieo.publishedAt, Constant.DATE_FFORMAT_MM_dd));
+        }else if (dailyDaily.results.welfareData != null && dailyDaily.results.welfareData.size() > 0) {
+           BaseGankData welfare=dailyDaily.results.welfareData.get(0);
+            mTextView.setText(welfare.desc);
+            mDate.setText(Dateutils.date2String(welfare.publishedAt, Constant.DATE_FFORMAT_MM_dd));
 
+        }else{
+            mTextView.setText("没福利了");
+            mDate.setText("");
+        }
+
+         //图片单独处理
+         if (dailyDaily.results.welfareData != null && dailyDaily.results.welfareData.size() > 0){
+             BaseGankData welfare=dailyDaily.results.welfareData.get(0);
+             GlideUtils.display(mImageView, welfare.url);
+             mImageView.setOnClickListener(v->{
+                 if (listener!=null)
+                 listener.onClick(v,welfare.url);
+
+             });
+         }
 
     }
     public void loadingWelfare(GankRecyclerViewHolder viewHolder, int position){
@@ -83,16 +107,21 @@ public class SimpleAdapter extends GankRecyclerViewAdapter {
     }
     public void loadingTech(GankRecyclerViewHolder viewHolder, int position){
         BaseGankData baseGankData=this.getItem(position);
-        TextView mDataTitle=viewHolder.findViewById(R.id.title_data_tv);
+        TextView mDataTitle= viewHolder.findViewById(R.id.dtitle_data_tv);
         TextView mDataVia=viewHolder.findViewById(R.id.author_data_tv);
         TextView mDataSource=viewHolder.findViewById(R.id.source_data_tv);
         TextView mDataDate=viewHolder.findViewById(R.id.date_data_tv);
-        if(baseGankData!=null) {
+        if(baseGankData==null) return;
+        if(!TextUtils.isEmpty(baseGankData.desc)&&mDataTitle!=null)
             mDataTitle.setText(baseGankData.desc);
-            mDataSource.setText("");
-            mDataDate.setText(baseGankData.publishedAt.toString());
-            mDataVia.setText("by:"+baseGankData.who);
-        }
+
+
+        if(!TextUtils.isEmpty(baseGankData.publishedAt.toString())&&mDataDate!=null)
+            mDataDate.setText(Dateutils.date2String(baseGankData.publishedAt,Constant.DATE_FFORMAT_MM_dd));
+        if(!TextUtils.isEmpty(baseGankData.who.toString())&&mDataVia!=null)
+            mDataVia.setText("  "+baseGankData.who);
+
+
 
 
 
@@ -132,5 +161,12 @@ public class SimpleAdapter extends GankRecyclerViewAdapter {
         };
     }
 
+    onWelfareClick listener;
+      public interface onWelfareClick{
+          void onClick(View v,String url);
+      }
 
+    public void setOnWelfareClickListener(onWelfareClick listener){
+         this.listener=listener;
+    }
 }

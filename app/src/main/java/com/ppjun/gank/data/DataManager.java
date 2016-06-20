@@ -57,7 +57,8 @@ public class DataManager {
     public Observable<ArrayList<BaseGankData>> getDataByNetWork(String type, int amount, int page){
         return Gank.getInsance().getGankService().getData(type,amount,page)
                 .map(gankData -> gankData.results)
-                .subscribeOn(Schedulers.newThread()).observeOn(AndroidSchedulers.mainThread());
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread());
 
 
     }

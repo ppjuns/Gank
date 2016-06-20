@@ -7,10 +7,8 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 
 import com.ppjun.gank.R;
 import com.ppjun.gank.gank.GankApi;
@@ -27,6 +25,7 @@ public class MainActivity extends AppCompatActivity
     TabLayout mTabLayout;
     @Bind(R.id.viewpager)
     ViewPager mViewPager;
+
     private String[] TITLES={"每日精彩","美图","Android","iOS","前端","休息视频"};
     private ArrayList<SimpleFragment> mList;
 
@@ -36,9 +35,8 @@ public class MainActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        toolbar.setVisibility(View.GONE);
+
+
 
 
         mTabLayout.addTab(mTabLayout.newTab().setText(TITLES[0]));
@@ -130,4 +128,9 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-}
+          @Override
+          protected void onDestroy() {
+              super.onDestroy();
+              ButterKnife.unbind(this);
+          }
+      }

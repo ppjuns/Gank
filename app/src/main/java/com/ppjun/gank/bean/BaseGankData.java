@@ -57,4 +57,6 @@ public class BaseGankData implements Serializable {
      **/
     @SerializedName("updatedAt")
     public Date updatedAt;
+
+
 }

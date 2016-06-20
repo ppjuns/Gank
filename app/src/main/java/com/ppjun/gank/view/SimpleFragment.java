@@ -1,5 +1,6 @@
 package com.ppjun.gank.view;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -30,7 +31,10 @@ import java.util.List;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
+import rx.Observable;
 import rx.Subscriber;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
 
 /**
  * @Package :com.ppjun.gank
@@ -39,21 +43,27 @@ import rx.Subscriber;
  * @Created at :2016/4/18 15:51.
  */
 public class SimpleFragment extends Fragment {
-    public static final String TAG="SimpleFragment";
+    public static final String TAG = "SimpleFragment";
     @Bind(R.id.recyclerview)
     RecyclerView mRecyclerView;
     @Bind(R.id.swiperefreshlayout)
     SwipeRefreshLayout mSwipeRefreshLayout;
     int page = 1;
-    private ArrayList<GankDaily> mList;
-    private String mResquestParam ;
-    private boolean refreshStatus=false;
     GankDate gankDate;
+    SimpleAdapter adapter;
+    private ArrayList<GankDaily> mList;
+    private String mResquestParam;
+    private boolean refreshStatus = false;
+    private boolean isLoadMore;
+
+
+
     public SimpleFragment(String type) {
         this.mResquestParam = type;
 
 
     }
+
 
     @Nullable
     @Override
@@ -75,20 +85,19 @@ public class SimpleFragment extends Fragment {
             public void onRefresh() {
                 //下来动作
                 if (mResquestParam == GankApi.DATA_TYPE_DAILY) {
-                    getDailyData();
+                    getDailyData(true);
                 } else if (mResquestParam == GankApi.DATA_TYPE_WELFARE) {
 
-                    getWelfareData();
-                }
-                else  {
-                    getTechData();
+                    getWelfareData(true);
+                } else {
+                    getTechData(true);
 
                 }
             }
         });
-        mSwipeRefreshLayout.post(()->{
+        mSwipeRefreshLayout.post(() -> {
             mSwipeRefreshLayout.setRefreshing(true);
-            refreshStatus=true;
+            refreshStatus = true;
         });
 
         long time = System.currentTimeMillis();
@@ -96,37 +105,124 @@ public class SimpleFragment extends Fragment {
         calendar.setTimeInMillis(time);
 
 
-         gankDate = new GankDate(calendar);
+        gankDate = new GankDate(calendar);
 
 
         if (mResquestParam == GankApi.DATA_TYPE_DAILY) {
-                 getDailyData();
+            getDailyData(true);
         } else if (mResquestParam == GankApi.DATA_TYPE_WELFARE) {
 
-            getWelfareData();
-        }
-        else  {
-            getTechData();
+            getWelfareData(true);
+        } else {
+            getTechData(true);
 
         }
     }
 
 
     public void initFragments(List list) {
-        mSwipeRefreshLayout.post(()->{
+        mSwipeRefreshLayout.post(() -> {
 
             mSwipeRefreshLayout.setRefreshing(false);
-            refreshStatus=false;
+            refreshStatus = false;
         });
+               if(!isLoadMore){
+                   mList.clear();
+                   mList.addAll(list);
+               }else{
 
-        SimpleAdapter adapter = new SimpleAdapter(getActivity(), mResquestParam);
-        adapter.setList(list);
+                   mList.addAll(list);
+                   adapter.setList(mList);
+                   adapter.notifyDataSetChanged();
+                   return;
+               }
+
+
+
+        adapter = new SimpleAdapter(getActivity(), mResquestParam);
+
+        adapter.setList(mList);
+        adapter.notifyDataSetChanged();
         LinearLayoutManager manager = new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false);
 
         mRecyclerView.setLayoutManager(manager);
         mRecyclerView.setAdapter(adapter);
+        adapter.setOnWelfareClickListener(new SimpleAdapter.onWelfareClick() {
+            @Override
+            public void onClick(View v, String url) {
+                Intent intent = new Intent(getActivity(), PictureActivity.class);
+                intent.putExtra("imageurl", url);
+                startActivity(intent);
+            }
+        });
+        adapter.setOnItemClick((v, position) -> {
+            Object o = adapter.getItem(position);
+            if (o instanceof BaseGankData) {
+                //福利，数据的界面
+                BaseGankData baseGankData = (BaseGankData) o;
+                if (mResquestParam == GankApi.DATA_TYPE_WELFARE) {
+                    //福利界面
+                    Intent intent = new Intent(getActivity(), PictureActivity.class);
+                    intent.putExtra("imageurl", baseGankData.url);
+                    startActivity(intent);
+                } else {
+                    //数据界面
+                    Intent intent = new Intent(getActivity(), H5Activity.class);
+                    intent.putExtra("url", baseGankData.url);
+                    startActivity(intent);
 
+                }
+            } else if (o instanceof GankDaily) {
+                //每日数据界面
+                GankDaily gankDaily = (GankDaily) o;
+
+                //先组装list 再跳转
+                this.getDailyDetialData(gankDaily.results).subscribe(new Subscriber<ArrayList<ArrayList<BaseGankData>>>() {
+                    @Override
+                    public void onCompleted() {
+
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+
+                    }
+
+                    @Override
+                    public void onNext(ArrayList<ArrayList<BaseGankData>> arrayLists) {
+                       // listener.intentlist(arrayLists);
+                        //跳转
+                     Intent intent = new Intent(getActivity(), DetailInfoActivity.class);
+
+                        intent.putExtra("list",arrayLists);
+                        startActivity(intent);
+
+
+                    }
+                });
+
+            }
+
+        });
         mRecyclerView.setOnScrollListener(this.getRecyclerViewOnScrollListener());
+    }
+
+    public Observable<ArrayList<ArrayList<BaseGankData>>> getDailyDetialData(GankDaily.DailyResults result) {
+       return Observable.just(result)
+                .map(dailyResults -> {
+                    ArrayList<ArrayList<BaseGankData>> list = new ArrayList<ArrayList<BaseGankData>>();
+                    if (dailyResults.welfareData != null && dailyResults.welfareData.size() > 0)
+                        list.add(dailyResults.welfareData);
+                    if (dailyResults.androidData != null && dailyResults.androidData.size() > 0)
+                        list.add(dailyResults.androidData);
+                    if (dailyResults.iosData != null && dailyResults.iosData.size() > 0)
+                        list.add(dailyResults.iosData);
+                    if (dailyResults.jsData != null && dailyResults.jsData.size() > 0)
+                        list.add(dailyResults.jsData);
+                    if (dailyResults.videoData != null && dailyResults.videoData.size() > 0)
+                        list.add(dailyResults.videoData);
+                    return list;
+                }).subscribeOn(Schedulers.newThread()).observeOn(AndroidSchedulers.mainThread());
     }
 
     @Override
@@ -137,7 +233,13 @@ public class SimpleFragment extends Fragment {
     }
 
 
-    private  void  getDailyData(){
+    private void getDailyData(final boolean isfresh) {
+   if(isfresh){
+      isLoadMore=false;
+       page=1;
+   }
+
+
         DataManager.getInstance().getDailyDataByNetWork(this.gankDate).subscribe(
                 new Subscriber<List<GankDaily>>() {
                     @Override
@@ -176,6 +278,8 @@ public class SimpleFragment extends Fragment {
                         } else {
 
                             ReservoirUtils.refresh(GankType.daily + "", gankDailies);
+
+
                             initFragments(gankDailies);
 
 
@@ -185,50 +289,64 @@ public class SimpleFragment extends Fragment {
         );
 
     }
-private void getTechData(){
 
-    DataManager.getInstance().getDataByNetWork(mResquestParam, 10, 1).subscribe(
-            new Subscriber<ArrayList<BaseGankData>>() {
-                @Override
-                public void onCompleted() {
+    private void getTechData(boolean isflesh) {
 
-                }
+        if(isflesh){
+            page=1;
+            isLoadMore=false;
+        }
 
-                @Override
-                public void onError(Throwable e) {
-                    Type resultType = new TypeToken<List<BaseGankData>>() {
-                    }.getType();
-                    ReservoirUtils.get(mResquestParam, resultType, new ReservoirGetCallback<List<BaseGankData>>() {
-                        @Override
-                        public void onSuccess(List<BaseGankData> baseGankDatas) {
-                            initFragments(baseGankDatas);
-                        }
-
-                        @Override
-                        public void onFailure(Exception e) {
-
-                        }
-                    });
-
-                }
-
-                @Override
-                public void onNext(ArrayList<BaseGankData> baseGankDatas) {
-
-                    if (baseGankDatas == null) {
-                        Log.i("TAG", "list null");
-                    } else {
-                        ReservoirUtils.refresh(mResquestParam, baseGankDatas);
-                        initFragments(baseGankDatas);
-
+        DataManager.getInstance().getDataByNetWork(mResquestParam, 10, page).subscribe(
+                new Subscriber<ArrayList<BaseGankData>>() {
+                    @Override
+                    public void onCompleted() {
 
                     }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        Type resultType = new TypeToken<List<BaseGankData>>() {
+                        }.getType();
+                        ReservoirUtils.get(mResquestParam, resultType, new ReservoirGetCallback<List<BaseGankData>>() {
+                            @Override
+                            public void onSuccess(List<BaseGankData> baseGankDatas) {
+                                initFragments(baseGankDatas);
+                            }
+
+                            @Override
+                            public void onFailure(Exception e) {
+
+                            }
+                        });
+
+                    }
+
+                    @Override
+                    public void onNext(ArrayList<BaseGankData> baseGankDatas) {
+
+                        if (baseGankDatas == null) {
+                            Log.i("TAG", "list null");
+                        } else {
+                            ReservoirUtils.refresh(mResquestParam, baseGankDatas);
+                            initFragments(baseGankDatas);
+
+
+                        }
+                    }
                 }
-            }
-    );
-}
-    private void getWelfareData(){
-        DataManager.getInstance().getDataByNetWork(GankApi.DATA_TYPE_WELFARE, 10, 1).subscribe(
+        );
+    }
+
+    private void getWelfareData(boolean isfresh) {
+
+
+        if(isfresh){
+            isLoadMore=false;
+            page=1;
+        }
+
+        DataManager.getInstance().getDataByNetWork(GankApi.DATA_TYPE_WELFARE, 10, page).subscribe(
                 new Subscriber<ArrayList<BaseGankData>>() {
                     @Override
                     public void onCompleted() {
@@ -269,6 +387,80 @@ private void getTechData(){
         );
     }
 
+    private RecyclerView.OnScrollListener getRecyclerViewOnScrollListener() {
+        return new RecyclerView.OnScrollListener() {
+            private boolean tolast = false;
+
+            @Override
+            public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
+                super.onScrollStateChanged(recyclerView, newState);
+                RecyclerView.LayoutManager layoutManager = recyclerView.getLayoutManager();
+
+                if (layoutManager instanceof LinearLayoutManager) {
+                    LinearLayoutManager manager = (LinearLayoutManager) layoutManager;
+                    if (newState == RecyclerView.SCROLL_STATE_IDLE) {
+                        //显示最后一个item
+
+                        if (tolast && manager.findLastCompletelyVisibleItemPosition() == (manager.getItemCount() - 1)) {
+                            //开始加载更多
+                         loadMoreRequest();
+
+
+
+                        }
+
+                    }
+                }
+
+            }
+
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+
+                if (dy > 0)
+                    tolast = true;
+                else
+                    tolast = false;
+            }
+        };
+
+
+    }
+
+    public int getPage() {
+        return this.page;
+    }
+
+    public void setPage(int page) {
+        this.page = page;
+    }
+
+    private void loadMoreRequest() {
+
+        if (!this.refreshStatus) {
+            mSwipeRefreshLayout.post(() -> {
+                mSwipeRefreshLayout.setRefreshing(true);
+
+            });
+            this.setPage(page + 1);
+            this.loadMore(mResquestParam);
+            isLoadMore=true;
+        }
+
+    }
+
+    private void loadMore(String gankType) {
+        if (gankType == GankApi.DATA_TYPE_DAILY) {
+            getDailyData(false);
+        }else if(gankType==GankApi.DATA_TYPE_WELFARE){
+            getWelfareData(false);
+        }else{
+
+         getTechData(false);
+        }
+
+    }
 
     public class GankDate {
 
@@ -307,67 +499,5 @@ private void getTechData(){
             }
             return dateList;
         }
-    }
-
-    private RecyclerView.OnScrollListener getRecyclerViewOnScrollListener(){
-        return  new RecyclerView.OnScrollListener() {
-            private boolean tolast=false;
-            @Override
-            public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
-                super.onScrollStateChanged(recyclerView, newState);
-                RecyclerView.LayoutManager layoutManager=recyclerView.getLayoutManager();
-
-                if(layoutManager instanceof LinearLayoutManager){
-                    LinearLayoutManager manager= (LinearLayoutManager) layoutManager;
-                    if(newState==RecyclerView.SCROLL_STATE_IDLE){
-                         //显示最后一个item
-                        if(tolast&&manager.findLastCompletelyVisibleItemPosition()==(manager.getItemCount()-1)){
-                            //开始加载更多
-                          loadMoreRequest();
-                        }
-
-                    }
-                }
-
-            }
-
-            @Override
-            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-                super.onScrolled(recyclerView, dx, dy);
-
-                if(dy>0)
-                    tolast=true;
-                else
-                    tolast=false;
-            }
-        };
-
-
-
-    }
-
-    public void setPage(int page){
-        this.page=page;
-    }
-    public int getPage(){
-        return this.page;
-    }
-
-    private void loadMoreRequest(){
-
-         if(!this.refreshStatus){
-                   this.setPage(page+1);
-               this.loadMore(mResquestParam);
-         }
-
-    }
-
-
-
-    private void loadMore(String gankType){
-         if(gankType==GankApi.DATA_TYPE_DAILY){
-             getDailyData();
-         }
-
     }
 }

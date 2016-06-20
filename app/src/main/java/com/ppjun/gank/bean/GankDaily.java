@@ -3,7 +3,6 @@ package com.ppjun.gank.bean;
 import com.google.gson.annotations.SerializedName;
 
 import java.io.Serializable;
-import java.lang.*;
 import java.lang.Error;
 import java.util.ArrayList;
 
@@ -29,7 +28,7 @@ public class GankDaily extends Error implements Serializable {
     /**
      * 成功返回的内容
      **/
-    public class DailyResults {
+    public static class DailyResults {
         @SerializedName("福利")
         public ArrayList<BaseGankData> welfareData;
         @SerializedName("Android")
@@ -46,5 +45,6 @@ public class GankDaily extends Error implements Serializable {
         public ArrayList<BaseGankData> appData;
         @SerializedName("瞎推荐")
         public ArrayList<BaseGankData> recommendData;
+
     }
 }

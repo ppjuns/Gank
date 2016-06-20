@@ -1,5 +1,8 @@
 package com.ppjun.gank.utils;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 /**
  * @Package :com.ppjun.gank.utils
  * @Description :
@@ -13,4 +16,11 @@ public class Dateutils {
     public static final long ONE_MINUTE=ONE_SECOND*60;
     public static final long ONE_HOUR=ONE_MINUTE*60;
     public static final long ONE_DAY=ONE_HOUR*24;
+
+
+public static String date2String(Date date, String fmt){
+    SimpleDateFormat sdf=new SimpleDateFormat(fmt);
+    return sdf.format(date);
+}
+
 }

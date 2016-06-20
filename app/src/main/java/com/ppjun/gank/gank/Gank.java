@@ -11,7 +11,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
  * @Created at :2016/4/18 16:40.
  */
 public class Gank {
-    private static volatile Gank mInstance;
+    private static volatile Gank mInstance=new Gank();
    private GankService mGankService;
     public Gank() {
 

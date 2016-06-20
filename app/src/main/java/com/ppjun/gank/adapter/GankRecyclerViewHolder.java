@@ -30,41 +30,9 @@ public class GankRecyclerViewHolder extends RecyclerView.ViewHolder {
         return (T) view;
     }
 
-    public void setOnItemClickListener(final OnItemClickListener listener,final int position){
 
-        if(listener==null){
-            this.itemView.setOnClickListener(null);
-        }else{
-            this.itemView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    listener.onItemClick(v,position);
-                }
-            });
-        }
-    }
 
-    public void setOnItemLongClickListener(final OnItemLongClickListener listener,final int position){
-        if(listener==null){
-            itemView.setOnClickListener(null);
-        }else{
 
-            itemView.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(View v) {
 
-                    return  listener.onItemLongClick(v,position);
-                }
-            });
-        }
 
-    }
-
-    public interface OnItemClickListener {
-        void onItemClick(View convertView, int position);
-    }
-
-    public interface OnItemLongClickListener {
-        boolean onItemLongClick(View convertView, int position);
-    }
 }
